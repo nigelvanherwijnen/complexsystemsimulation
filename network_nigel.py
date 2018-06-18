@@ -115,7 +115,7 @@ class Graph:
         """
 
         # Pick random pivot node
-        pivot = np.random.randint(self.n_v, size=1)[0]
+        pivot = np.random.randint(self.n_v)
 
         # Get list of neighbors
         neighbors = list(nx.all_neighbors(self.G, pivot))
@@ -136,9 +136,6 @@ class Graph:
 
             # Calculate value difference
             value_diff = abs(values[i] - values[pivot])
-            if (i != pivot) and (value_diff == 0):
-                print(i, pivot)
-                print(values[i], values[pivot])
 
             # If new minimum difference, save
             if (value_diff < vmin) and (i != pivot):
@@ -146,7 +143,7 @@ class Graph:
                 candidate = i
 
             # If new maximum difference, save
-            if (value_diff > vmax) and (i in neighbors):
+            if (value_diff >= vmax) and (i in neighbors):
                 vmax = value_diff
                 outcast = i
 
