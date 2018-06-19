@@ -1,10 +1,10 @@
 import networkx as nx
 import matplotlib.pyplot as plt
 import numpy as np
+import cProfile
 
-
-v = 100
-e = 60
+v = 700
+e = 8000
 a = 1.7
 eps = 0.4
 np.random.seed(1337)
@@ -17,17 +17,14 @@ node_init_list = np.arange(0,v)
 dictionary = dict(zip(node_init_list, ac_val_list))
 nx.set_node_attributes(G, dictionary, 'activation_val')
 
-# Draws initial graph
-plt.subplot(121)
-nx.draw_shell(G, with_labels = True)
-
 
 # The logistic map function
 def log_map(x):
 	return 1 - a * x**2
 
-# The Update Units function
+
 def update_activation_values(G):
+	" Updates all activation values at once"
 	# remember all old values for synchronous updating
 	activation_values_dict = nx.get_node_attributes(G,'activation_val')
 
@@ -38,9 +35,11 @@ def update_activation_values(G):
 		
 		its_neighbors = list(nx.all_neighbors(G, node))
 		number_of_neighbors = len(its_neighbors)
-		sum_act_neighbors = sum(list(map(log_map,list(map(lambda neighbor: nx.get_node_attributes(G,'activation_val')[neighbor],its_neighbors)))))
+		act_val_of_neighbors = np.asarray(list(nx.get_node_attributes(G,'activation_val').values()))[its_neighbors]
+		sum_act_neighbors = sum(list(map(log_map,act_val_of_neighbors)))
 		log_map_neighbors = sum_act_neighbors
 
+		# Evade division by 0 error
 		if number_of_neighbors != 0:
 			prefix = eps/number_of_neighbors
 		else: prefix = 0
@@ -54,10 +53,9 @@ def update_activation_values(G):
 	nx.set_node_attributes(G,activation_values_dict,'activation_val')
 
 
-# update_activation_values(G)
 
 def update_edges(G):
-
+	" Updates edges of the network if possible"
 	activation_values_array = np.asarray(list(nx.get_node_attributes(G,'activation_val').values()))
 	pivot = np.random.randint(0,v)
 	pivot_act_val = activation_values_array[pivot]
@@ -67,47 +65,58 @@ def update_edges(G):
 
 	# finds the closest one, assigns candidate
 	candidate = np.nanargmin(np.abs((activation_values_array-pivot_act_val)))
-	# candidate_act_val = activation_values_array[candidate]
-
-	# print(pivot, pivot_act_val)
 	neighbors_array = np.asarray(list(nx.all_neighbors(G, pivot)))
-	# print(neighbors_array)
 
 	neighbors_act_val_array = list(map(lambda nb: nx.get_node_attributes(G,'activation_val')[nb],neighbors_array))
-	# print(neighbors_act_val_array)
-	# print('neighborsactval - pivot act', neighbors_act_val_array-pivot_act_val)
 
 	if len(neighbors_array) != 0 and G.has_edge(pivot, candidate) != True:
 		outcast_index = np.nanargmax(np.abs((neighbors_act_val_array-pivot_act_val)))
 		outcast = neighbors_array[outcast_index]
-		# print('pivot',pivot)
-		# print('outcast',outcast)
+
 		G.remove_edge(pivot, outcast)
 		G.add_edge(pivot, candidate)
 
-
-
 	return
 
-plt.show()
+def calc_CC(G):
+	cc_list = np.asarray(list(nx.clustering(G).values()))
+	cc_min = np.min(cc_list)
+	# cc_min_node = cc_list[cc_min]
+	cc_max = np.max(cc_list)
+	# cc_max_node = cc_list[cc_max]
+	cc_avg = np.average(cc_list)
+	return cc_min, cc_max, cc_avg
 
-for i in range(0,3000):
-	# print(i)
-	update_activation_values(G)
+def calc_avg_cc(G):
+	return nx.average_clustering(G)
 
-# plt.subplot(132)
+iterations = 1000
+cc_min_list = np.empty(iterations)
+cc_max_list = np.empty(iterations)
+cc_avg_list = np.empty(101)
+
+def run_iterations(G):
+	for i in range(0,iterations):
+
+
+		update_activation_values(G)
+		update_edges(G)
+		# cc_min_list[i], cc_max_list[i], cc_avg_list[i] = calc_CC(G)
+
+		if i%100 == 0:
+			print(i)
+			cc_avg_list[i] = calc_avg_cc(G)
+	return cc_avg_list	
+
+cProfile.run('run_iterations(G)')
+
+# plt.plot(np.arange(0,iterations), cc_avg_list)
+# plt.show()
+
+
+
+# plt.subplot(122)
 # nx.draw_shell(G, labels = nx.get_node_attributes(G, 'activation_val'), font_size = 5)
-
-	update_edges(G)
-
-plt.subplot(122)
-nx.draw_shell(G, labels = nx.get_node_attributes(G, 'activation_val'), font_size = 5)
-print(nx.get_node_attributes(G, 'activation_val'))
-plt.show()
-
-
-
-
-
-
+# print(nx.get_node_attributes(G, 'activation_val'))
+# plt.show()
 
