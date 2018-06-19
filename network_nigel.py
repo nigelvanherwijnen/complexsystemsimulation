@@ -10,8 +10,12 @@ import numpy as np
 import scipy as sp
 import random
 import itertools
-# from operator import itemgetter
 from pydash import at
+import cProfile
+import re
+from numba import jitclass
+from numba import int32, float32
+
 
 class Graph:
 
@@ -30,6 +34,10 @@ class Graph:
         self.n_e = n_e
         self.a = a
         self.eps = eps
+
+        # Define arrays to store CC and CLS
+        self.cc = []
+        self.cls = []
 
         # Set seed for testing
         np.random.seed(1337)
@@ -60,10 +68,14 @@ class Graph:
             self.update_attr()
 
             # Determine pivot, candidate and outcast
-            pivot, candidate, outcast = graph.pivot()
+            pivot, candidate, outcast = self.pivot()
 
             # Rewire if possible
             self.rewire(pivot, candidate, outcast)
+
+            self.cc.append(nx.average_clustering(self.G))
+
+        print('Timestep done')
 
     def update_attr(self):
         """
@@ -118,34 +130,25 @@ class Graph:
         pivot = np.random.randint(self.n_v)
 
         # Get list of neighbors
-        neighbors = list(nx.all_neighbors(self.G, pivot))
+        neighbors = np.asarray(list(nx.all_neighbors(self.G, pivot)))
 
         # Return if no neighbors are available
         if len(neighbors) == 0:
             return pivot, pivot, pivot
 
         # Collect all values
-        values = nx.get_node_attributes(self.G, 'value')
+        values = np.asarray(list(nx.get_node_attributes(self.G, 'value').values()))
 
-        # Initialize variables
-        vmin, candidate = 1, 1
-        vmax, outcast = 0, 0
+        # Save pivot value and set to NaN
+        pivot_val = values[pivot]
+        values[pivot] = np.nan
 
-        # Loop over all nodes
-        for i in range(self.n_v):
+        # Find candidate
+        candidate = np.nanargmin(np.abs(values - pivot_val))
 
-            # Calculate value difference
-            value_diff = abs(values[i] - values[pivot])
-
-            # If new minimum difference, save
-            if (value_diff < vmin) and (i != pivot):
-                vmin = value_diff
-                candidate = i
-
-            # If new maximum difference, save
-            if (value_diff >= vmax) and (i in neighbors):
-                vmax = value_diff
-                outcast = i
+        # Compute outcast
+        neighbors_values = values[neighbors]
+        outcast = neighbors[np.argmax(np.abs(neighbors_values - pivot_val))]
 
         # Return pivot and candidate
         return pivot, candidate, outcast
@@ -181,40 +184,37 @@ class Graph:
         """
 
         # plt.figure(figsize=(8, 8))
-        nx.draw(self.G, node_color=list(nx.get_node_attributes(graph.G, 'value')),
-                    cmap=plt.cm.Reds_r, node_size=80)
+        nx.draw_kamada_kawai(self.G, node_color=list(nx.get_node_attributes(self.G, 'value')),
+                    cmap=plt.cm.Reds_r, node_size=50)
         # plt.axis('off')
         # plt.show()
 
 
-
-
-
-# graph = Graph(4, 2)
-# plt.subplot(121)
-# nx.draw_circular(graph.G, with_labels=True, labels=nx.get_node_attributes(graph.G, 'value'), font_size=8)
-# graph.timestep(1)
-# print(nx.get_node_attributes(graph.G, 'value'))
-# plt.subplot(122)
-# nx.draw_circular(graph.G, with_labels=True, labels=nx.get_node_attributes(graph.G, 'value'), font_size=8)
+# plt.figure(figsize=(12, 12))
+# plt.subplot(221)
+# graph.draw()
+#
+# plt.subplot(222)
+# graph.timestep(100)
+# graph.draw()
+#
+# plt.subplot(223)
+# graph.timestep(100)
+# graph.draw()
+#
+# plt.subplot(224)
+# graph.timestep(100)
+# graph.draw()
+#
 # plt.show()
+def joe():
+    graph = Graph(700, 8000)
+    N = 100
+    M = 1
+    for i in range(M):
+        graph.timestep(N)
+    # plt.plot(np.linspace(0, N*M, M*N), graph.cc)
+    # plt.show()
 
-graph = Graph(100, 60)
-
-plt.figure(figsize=(12, 12))
-plt.subplot(221)
-graph.draw()
-
-plt.subplot(222)
-graph.timestep(1000)
-graph.draw()
-
-plt.subplot(223)
-graph.timestep(1000)
-graph.draw()
-
-plt.subplot(224)
-graph.timestep(1000)
-graph.draw()
-
-plt.show()
+cProfile.run('joe()')
+# joe()
