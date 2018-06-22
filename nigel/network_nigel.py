@@ -109,13 +109,13 @@ class Graph:
 
             # Compute part dependent on own node
             # new_value = (1 - self.eps) * self.logistic_map(all_values[i])
-            val_i = self.all_values[i]['value']
+            val_i = all_values[i]
             new_value = (1 - self.eps) * (1 - self.a * val_i * val_i)
 
             # Compute part dependent on neighbor nodes
             neighbors_value = 0
             for neighbor in neighbors:
-                val_n = self.all_values[neighbor]['value']
+                val_n = all_values[neighbor]
                 # neighbors_value += self.logistic_map(all_values[neighbor])
                 neighbors_value += (1 - self.a * val_n * val_n)
 
