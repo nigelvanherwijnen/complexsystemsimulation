@@ -216,5 +216,5 @@ def joe():
     # plt.plot(np.linspace(0, N*M, M*N), graph.cc)
     # plt.show()
 
-cProfile.run('joe()')
+#cProfile.run('joe()')
 # joe()
