@@ -15,8 +15,6 @@ import cProfile
 import re
 from numba import jitclass
 from numba import int32, float32
-import pickle
-import math
 
 
 class Graph:
@@ -37,15 +35,15 @@ class Graph:
         self.a = a
         self.eps = eps
 
-        # Define arrays to store CC and CPL
+        # Define arrays to store CC and CLS
         self.cc = []
-        self.cpl = []
+        self.cls = []
 
         # Set seed for testing
-        # np.random.seed(1337)
+        np.random.seed(1337)
 
         # Initialize random network
-        self.G = nx.gnm_random_graph(n_v, n_e)
+        self.G = nx.gnm_random_graph(n_v, n_e, seed=1337)
 
         # Compute initial value for each node
         init_values = np.random.uniform(-1, 1, n_v)
@@ -55,8 +53,6 @@ class Graph:
 
         # Set initial value for each node
         nx.set_node_attributes(self.G, init_attr)
-
-        print('Graph initialized')
 
     def timestep(self, t):
         """
@@ -77,18 +73,9 @@ class Graph:
             # Rewire if possible
             self.rewire(pivot, candidate, outcast)
 
-        # Calculate CC
-        self.cc.append(nx.average_clustering(self.G))
+            self.cc.append(nx.average_clustering(self.G))
 
-        # # Compute all subcomponents
-        # subcomp = nx.connected_components(self.G)
-        #
-        # # Calculate CPL
-        # self.cpl.append(0)
-        # for comp in subcomp:
-        #     self.cpl[-1] += (nx.average_shortest_path_length(self.G.subgraph(comp)) \
-        #                         * (len(comp) / self.n_v))
-
+        print('Timestep done')
 
     def update_attr(self):
         """
@@ -98,9 +85,6 @@ class Graph:
         # Retrieve all current values
         all_values = nx.get_node_attributes(self.G, 'value')
 
-        # Create variable to store new values
-        new_values = {}
-
         # Loop over all nodes
         for i in range(self.n_v):
 
@@ -108,16 +92,12 @@ class Graph:
             neighbors = list(nx.all_neighbors(self.G, i))
 
             # Compute part dependent on own node
-            # new_value = (1 - self.eps) * self.logistic_map(all_values[i])
-            val_i = all_values[i]
-            new_value = (1 - self.eps) * (1 - self.a * val_i * val_i)
+            new_value = (1 - self.eps) * self.logistic_map(all_values[i])
 
             # Compute part dependent on neighbor nodes
             neighbors_value = 0
-            for neighbor in neighbors:
-                val_n = all_values[neighbor]
-                # neighbors_value += self.logistic_map(all_values[neighbor])
-                neighbors_value += (1 - self.a * val_n * val_n)
+            for j, neighbor in enumerate(neighbors):
+                neighbors_value += self.logistic_map(all_values[neighbor])
 
             # Catch nodes without neighbors
             try:
@@ -125,11 +105,8 @@ class Graph:
             except ZeroDivisionError:
                 pass
 
-            # Save new value
-            new_values[i] = {'value': new_value}
-
-        # Update node value
-        nx.set_node_attributes(self.G, new_values)
+            # Update node value
+            nx.set_node_attributes(self.G, {i: {'value': new_value}})
 
 
     def logistic_map(self, x):
@@ -140,7 +117,7 @@ class Graph:
         """
 
         # Return computed value
-        return 1 - self.a * x * x
+        return 1 - self.a * (x**2)
 
 
     def pivot(self):
@@ -211,3 +188,33 @@ class Graph:
                     cmap=plt.cm.Reds_r, node_size=50)
         # plt.axis('off')
         # plt.show()
+
+
+# plt.figure(figsize=(12, 12))
+# plt.subplot(221)
+# graph.draw()
+#
+# plt.subplot(222)
+# graph.timestep(100)
+# graph.draw()
+#
+# plt.subplot(223)
+# graph.timestep(100)
+# graph.draw()
+#
+# plt.subplot(224)
+# graph.timestep(100)
+# graph.draw()
+#
+# plt.show()
+def joe():
+    graph = Graph(700, 8000)
+    N = 100
+    M = 1
+    for i in range(M):
+        graph.timestep(N)
+    # plt.plot(np.linspace(0, N*M, M*N), graph.cc)
+    # plt.show()
+
+#cProfile.run('joe()')
+# joe()
