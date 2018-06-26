@@ -105,15 +105,17 @@ def run_iterations(G):
 
 		if i%100 == 0:
 			print(i)
-			cc_avg_list[i] = calc_avg_cc(G)
+			cc_avg_list[int(i/100)] = calc_avg_cc(G)
 	return cc_avg_list	
 
-cProfile.run('run_iterations(G)')
+# cProfile.run('run_iterations(G)')
 
-# plt.plot(np.arange(0,iterations), cc_avg_list)
-# plt.show()
+def plot(G):
+	plt.plot(np.arange(0,101), cc_avg_list)
+	plt.show()
+	return
 
-
+run_iterations(G)
 
 # plt.subplot(122)
 # nx.draw_shell(G, labels = nx.get_node_attributes(G, 'activation_val'), font_size = 5)
