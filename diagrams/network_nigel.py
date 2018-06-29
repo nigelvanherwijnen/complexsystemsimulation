@@ -259,11 +259,11 @@ class Graph:
         Draws the graph.
         """
 
-        # plt.figure(figsize=(8, 8))
+        plt.figure(figsize=(8, 8))
         nx.draw_kamada_kawai(self.G, node_color=list(nx.get_node_attributes(self.G, 'value')),
                     cmap=plt.cm.Reds_r, node_size=50)
-        # plt.axis('off')
-        # plt.show()
+        plt.axis('off')
+        plt.show()
 
 
 

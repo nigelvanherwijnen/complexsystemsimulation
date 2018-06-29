@@ -12,11 +12,11 @@ from network import Graph
 def create_node_positions(final_graph):
     layt = nx.spring_layout(final_graph,dim=3)
     N = nx.number_of_nodes(final_graph)
-    
+
     Xn=[layt[k][0] for k in range(N)]# x-coordinates of nodes
     Yn=[layt[k][1] for k in range(N)]# y-coordinates
     Zn=[layt[k][2] for k in range(N)]# z-coordinates
-        
+
     return layt, Xn, Yn, Zn
 
 "CREATES THE COORDINATES FOR THE LINES CONNECTING THE NODES, AS WELL AS THE ACTIVATION VALUE OF THE NODES"
@@ -30,7 +30,7 @@ def create_edge_positions(layt, graph_edges):
         Xe+=[layt[e[0]][0],layt[e[1]][0], None]# x-coordinates of edge ends
         Ye+=[layt[e[0]][1],layt[e[1]][1], None]
         Ze+=[layt[e[0]][2],layt[e[1]][2], None]
-        
+
     return Xe, Ye, Ze
 
     "TURNS POSITIONS INTO PLOTLY TRACES"
@@ -124,14 +124,14 @@ def build_fig():
 		# print('starting opening')
 		# if i%10==0:
 		# 	print(i)
-		if i%50==0:
-			pickle_graphs.append(pickle.load(open('../pickles_for_animation/big_graph_timestep_'+str(i+1)+'.p',"rb")))
+		if i%20==0:
+			pickle_graphs.append(pickle.load(open('pickles_for_animation/big_graph_timestep_'+str(i+1)+'.p',"rb")))
 
 
 	layt, Xn, Yn, Zn = create_node_positions(pickle_graphs[-1].G)
 	# DATA WILL HAVE ALL DATA OF ALL FRAMES
 	for i, graph in enumerate(pickle_graphs):
-	    Xe, Ye, Ze = create_edge_positions(layt, graph.G) 
+	    Xe, Ye, Ze = create_edge_positions(layt, graph.G)
 	    act_val = list(nx.get_node_attributes(graph.G, "value").values())
 	    traces = create_scatter_objects(Xn, Yn, Zn, Xe, Ye, Ze, act_val)
 	    data.append(traces)
@@ -143,6 +143,5 @@ def build_fig():
 	layout = create_layout()
 	frames = [dict(data=data[i]) for i in range(1,len(data))]
 
-	figure=dict(data=data[0], layout=layout, frames=frames)     
-	return figure     
-
+	figure=dict(data=data[0], layout=layout, frames=frames)
+	return figure
