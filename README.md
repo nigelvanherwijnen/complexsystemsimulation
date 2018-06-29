@@ -6,7 +6,8 @@ __[link to private repository](https://github.com/nigelvanherwijnen/complexsyste
 
 __[link to public presentation](https://nigelvanherwijnen.github.io/complexsystemsimulation/)__
 
-This repository is used during the course Complex System Simulations at the University of Amsterdam in June 2018.
+This repository is used during the course Complex System Simulations at the University of Amsterdam in June 2018. This project is greatly inspired by __[this paper](https://www.ncbi.nlm.nih.gov/pmc/articles/PMC3316147/)__ by D. van den Berg, P. Gong, M. Breakspear and C. van Leeuwen.
+
 
 All libraries used during this project can be found in `requirements.txt`.
 
