@@ -3,7 +3,8 @@
 ##### By Mirjam Bruinsma, Maarten van de Ende, Nigel van den Ende and Thomas van der Veen
 
 __[link to private repository](https://github.com/nigelvanherwijnen/complexsystemsimulation)__
-__[link to public presentation](https://nigelvanherwijnen.github.io/complexsystemsimulation/)___
+
+__[link to public presentation](https://nigelvanherwijnen.github.io/complexsystemsimulation/)__
 
 This repository is used during the course Complex System Simulations at the University of Amsterdam in June 2018.
 
